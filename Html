@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Colorful T-Rex Run</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    overflow: hidden;
+    font-family: Arial, sans-serif;
+    background: #74d8ff;
+}
+
+#game {
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+    overflow: hidden;
+    background: linear-gradient(#6ed8ff, #dff8ff);
+    user-select: none;
+    touch-action: manipulation;
+}
+
+/* Sun */
+#sun {
+    position: absolute;
+    width: 80px;
+    height: 80px;
+    right: 80px;
+    top: 45px;
+    background: #ffd93d;
+    border-radius: 50%;
+    box-shadow: 0 0 30px #ffe680;
+}
+
+/* Clouds */
+.cloud {
+    position: absolute;
+    width: 90px;
+    height: 30px;
+    background: white;
+    border-radius: 30px;
+    opacity: .9;
+}
+
+.cloud::before,
+.cloud::after {
+    content: "";
+    position: absolute;
+    background: white;
+    border-radius: 50%;
+}
+
+.cloud::before {
+    width: 45px;
+    height: 45px;
+    left: 15px;
+    top: -20px;
+}
+
+.cloud::after {
+    width: 35px;
+    height: 35px;
+    right: 10px;
+    top: -12px;
+}
+
+#cloud1 {
+    top: 90px;
+    left: 15%;
+}
+
+#cloud2 {
+    top: 160px;
+    left: 55%;
+    transform: scale(.7);
+}
+
+/* Score */
+#score {
+    position: absolute;
+    top: 20px;
+    right: 25px;
+    color: #333;
+    font-size: 22px;
+    font-weight: bold;
+    z-index: 10;
+}
+
+/* Ground */
+#ground {
+    position: absolute;
+    bottom: 75px;
+    left: 0;
+    width: 100%;
+    height: 8px;
+    background: #48b04b;
+    border-top: 4px solid #237a2a;
+}
+
+/* Dino */
+#dino {
+    position: absolute;
+    left: 80px;
+    bottom: 83px;
+    width: 48px;
+    height: 50px;
+    background: #7b2cff;
+    border-radius: 12px 15px 7px 7px;
+    z-index: 5;
+    box-shadow: 0 5px 0 #4d159e;
+}
+
+#dino::before {
+    content: "";
+    position: absolute;
+    width: 32px;
+    height: 28px;
+    right: -13px;
+    top: 0;
+    background: #7b2cff;
+    border-radius: 8px;
+}
+
+#dino::after {
+    content: "";
+    position: absolute;
+    width: 7px;
+    height: 7px;
+    right: -4px;
+    top: 7px;
+    background: white;
+    border-radius: 50%;
+    box-shadow: inset 0 0 0 2px #222;
+}
+
+.leg {
+    position: absolute;
+    bottom: -10px;
+    width: 9px;
+    height: 15px;
+    background: #4d159e;
+    border-radius: 3px;
+}
+
+.leg.one {
+    left: 7px;
+}
+
+.leg.two {
+    left: 30px;
+}
+
+.arm {
+    position: absolute;
+    right: -13px;
+    top: 29px;
+    width: 17px;
+    height: 7px;
+    background: #4d159e;
+    transform: rotate(15deg);
+    border-radius: 5px;
+}
+
+/* Cactus */
+.cactus {
+    position: absolute;
+    bottom: 83px;
+    width: 25px;
+    background: #20a83a;
+    border-radius: 8px;
+    z-index: 4;
+    box-shadow: 4px 4px 0 #087322;
+}
+
+.cactus::before,
+.cactus::after {
+    content: "";
+    position: absolute;
+    width: 16px;
+    height: 28px;
+    background: #20a83a;
+    border-radius: 7px;
+}
+
+.cactus::before {
+    left: -12px;
+    top: 20px;
+}
+
+.cactus::after {
+    right: -12px;
+    top: 8px;
+}
+
+/* Game Over Screen */
+#message {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    z-index: 20;
+    background: rgba(255,255,255,.25);
+}
+
+#message h1 {
+    color: #ff3d71;
+    font-size: 42px;
+    margin: 0 0 10px;
+    text-shadow: 3px 3px #fff;
+}
+
+#message p {
+    color: #333;
+    font-size: 17px;
+    font-weight: bold;
+}
+
+#restart {
+    display: none;
+    padding: 13px 28px;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #ff4d6d, #ff8c42);
+    color: white;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 5px 0 #c8324d;
+    pointer-events: auto;
+}
+
+#restart:hover {
+    transform: translateY(-2px);
+}
+
+#restart:active {
+    transform: translateY(3px);
+    box-shadow: 0 2px 0 #c8324d;
+}
+</style>
+</head>
+
+<body>
+
+<div id="game">
+
+    <div id="sun"></div>
+
+    <div class="cloud" id="cloud1"></div>
+    <div class="cloud" id="cloud2"></div>
+
+    <div id="score">SCORE: 0</div>
+
+    <div id="dino">
+        <span class="leg one"></span>
+        <span class="leg two"></span>
+        <span class="arm"></span>
+    </div>
+
+    <div id="ground"></div>
+
+    <div id="message">
+        <h1 id="title">T-REX RUN!</h1>
+        <p id="hint">Press SPACE, ↑, or tap to start</p>
+        <button id="restart">RESTART</button>
+    </div>
+
+</div>
+
+<script>
+const game = document.getElementById("game");
+const dino = document.getElementById("dino");
+const scoreText = document.getElementById("score");
+
+const message = document.getElementById("message");
+const title = document.getElementById("title");
+const hint = document.getElementById("hint");
+const restart = document.getElementById("restart");
+
+let running = false;
+let gameOver = false;
+
+let jumping = false;
+let dinoY = 0;
+let velocity = 0;
+
+const gravity = 0.8;
+let speed = 7;
+
+let score = 0;
+let spawnTimer = 70;
+
+let obstacles = [];
+let animationID = null;
+
+
+/* START GAME */
+
+function startGame() {
+
+    if (animationID !== null) {
+        cancelAnimationFrame(animationID);
+    }
+
+    obstacles.forEach(obstacle => obstacle.remove());
+    obstacles = [];
+
+    running = true;
+    gameOver = false;
+
+    jumping = false;
+    dinoY = 0;
+    velocity = 0;
+
+    speed = 7;
+    score = 0;
+    spawnTimer = 70;
+
+    dino.style.transform = "translateY(0px)";
+
+    scoreText.textContent = "SCORE: 0";
+
+    title.textContent = "T-REX RUN!";
+    hint.textContent = "Press SPACE, ↑, or tap to jump";
+    restart.style.display = "none";
+    message.style.display = "none";
+
+    gameLoop();
+}
+
+
+/* JUMP */
+
+function jump() {
+
+    if (!running) {
+
+        if (!gameOver) {
+            startGame();
+        }
+
+        return;
+    }
+
+    if (!jumping) {
+        velocity = 15;
+        jumping = true;
+    }
+}
+
+
+/* CREATE CACTUS */
+
+function createCactus() {
+
+    const cactus = document.createElement("div");
+
+    cactus.className = "cactus";
+
+    const height = 40 + Math.random() * 35;
+
+    cactus.style.height = height + "px";
+
+    // Start outside the right side
+    cactus.style.left = game.clientWidth + 40 + "px";
+
+    game.appendChild(cactus);
+
+    obstacles.push(cactus);
+}
+
+
+/* COLLISION */
+
+function checkCollision(a, b) {
+
+    const r1 = a.getBoundingClientRect();
+    const r2 = b.getBoundingClientRect();
+
+    return !(
+        r1.right - 8 < r2.left ||
+        r1.left + 8 > r2.right ||
+        r1.bottom - 5 < r2.top ||
+        r1.top + 5 > r2.bottom
+    );
+}
+
+
+/* GAME OVER */
+
+function endGame() {
+
+    running = false;
+    gameOver = true;
+
+    if (animationID !== null) {
+        cancelAnimationFrame(animationID);
+    }
+
+    title.textContent = "GAME OVER!";
+    hint.textContent = "Your Score: " + Math.floor(score);
+
+    message.style.display = "flex";
+    restart.style.display = "block";
+}
+
+
+/* GAME LOOP */
+
+function gameLoop() {
+
+    if (!running) return;
+
+    /* Dino jumping */
+
+    if (jumping) {
+
+        velocity -= gravity;
+        dinoY += velocity;
+
+        if (dinoY <= 0) {
+
+            dinoY = 0;
+            velocity = 0;
+            jumping = false;
+        }
+
+        dino.style.transform =
+            "translateY(" + (-dinoY) + "px)";
+    }
+
+
+    /* Increase speed */
+
+    speed += 0.002;
+
+
+    /* Score */
+
+    score += 0.1;
+
+    scoreText.textContent =
+        "SCORE: " + Math.floor(score);
+
+
+    /* Spawn cactus */
+
+    spawnTimer--;
+
+    if (spawnTimer <= 0) {
+
+        createCactus();
+
+        spawnTimer =
+            Math.max(
+                45,
+                80 + Math.random() * 80 - speed * 2
+            );
+    }
+
+
+    /* Move cactus */
+
+    for (let i = obstacles.length - 1; i >= 0; i--) {
+
+        const obstacle = obstacles[i];
+
+        let left = parseFloat(obstacle.style.left);
+
+        left -= speed;
+
+        obstacle.style.left = left + "px";
+
+
+        /* Collision */
+
+        if (checkCollision(dino, obstacle)) {
+
+            endGame();
+            return;
+        }
+
+
+        /* Delete old cactus */
+
+        if (left < -150) {
+
+            obstacle.remove();
+
+            obstacles.splice(i, 1);
+        }
+    }
+
+
+    animationID = requestAnimationFrame(gameLoop);
+}
+
+
+/* KEYBOARD CONTROLS */
+
+document.addEventListener("keydown", function(e) {
+
+    if (
+        e.code === "Space" ||
+        e.code === "ArrowUp"
+    ) {
+
+        e.preventDefault();
+        jump();
+    }
+
+    if (
+        e.code === "Enter" &&
+        gameOver
+    ) {
+
+        e.preventDefault();
+        startGame();
+    }
+});
+
+
+/* TOUCH / CLICK */
+
+game.addEventListener("pointerdown", function(e) {
+
+    if (e.target === restart) {
+        return;
+    }
+
+    jump();
+});
+
+
+/* RESTART BUTTON */
+
+restart.addEventListener("pointerdown", function(e) {
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    startGame();
+});
+
+
+/* INITIAL SCREEN */
+
+title.textContent = "T-REX RUN!";
+
+hint.textContent =
+    "Press SPACE, ↑, or tap to start";
+
+</script>
+
+</body>
+</html>
+
